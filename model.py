@@ -1,7 +1,5 @@
 import tensorflow as tf
 
-import IPython.display as display
-
 import matplotlib.pyplot as plt
 
 import numpy as np
@@ -119,8 +117,10 @@ class StyleContentModel(tf.keras.models.Model):
         return {"content": content_dict, "style": style_dict}
 
 
-CONTENT_IMG_PATH = "images/mars.png"
+CONTENT_IMG_PATH = "images/planet-space.jpg"
 STYLE_IMG_PATH = "images/art.jpg"
+
+IMG_SAVE_NAME = "planet-space-art"
 
 content_img = load_img(CONTENT_IMG_PATH)
 style_img = load_img(STYLE_IMG_PATH)
@@ -186,14 +186,16 @@ steps_per_epoch = 100
 
 step = 0
 for n in range(epochs):
+    print(f"Epoch: {n+1}/{epochs}")
     for m in range(steps_per_epoch):
         step += 1
         train_step(image)
-        print(".", end="")
-    display.clear_output(wait=True)
-    display.display(tensor_to_image(image))
+    img = tensor_to_image(image)
+    img.save(f"save/{IMG_SAVE_NAME}-{n}.png")
     print("Train step: {}".format(step))
 
+product = tensor_to_image(image)
+plt.imshow(product)
 
 plt.show()
 
