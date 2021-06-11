@@ -117,20 +117,13 @@ class StyleContentModel(tf.keras.models.Model):
         return {"content": content_dict, "style": style_dict}
 
 
-CONTENT_IMG_PATH = "images/planet-space.jpg"
-STYLE_IMG_PATH = "images/art.jpg"
+CONTENT_IMG_PATH = "images/mountain.jpg"
+STYLE_IMG_PATH = "images/art2.jpg"
 
-IMG_SAVE_NAME = "planet-space-art"
+IMG_SAVE_NAME = "mountain-art2"
 
 content_img = load_img(CONTENT_IMG_PATH)
 style_img = load_img(STYLE_IMG_PATH)
-
-plt.subplot(1, 2, 1)
-imshow(content_img, "Content Image")
-
-plt.subplot(1, 2, 2)
-imshow(style_img, "Style Image")
-# plt.show()
 
 content_layers = ["block5_conv2"]
 
@@ -195,9 +188,6 @@ for n in range(epochs):
     print("Train step: {}".format(step))
 
 product = tensor_to_image(image)
-plt.imshow(product)
-
-plt.show()
 
 end = time.time()
 print("Total time: {:.1f}".format(end - start))
