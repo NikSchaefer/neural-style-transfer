@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 import PIL.Image
-import time
 
 
 def tensor_to_image(tensor):
@@ -17,7 +16,7 @@ def tensor_to_image(tensor):
 
 
 def load_img(path_to_img):
-    max_dim = 1200
+    max_dim = 2000
     img = tf.io.read_file(path_to_img)
     img = tf.image.decode_image(img, channels=3)
     img = tf.image.convert_image_dtype(img, tf.float32)
@@ -31,15 +30,6 @@ def load_img(path_to_img):
     img = tf.image.resize(img, new_shape)
     img = img[tf.newaxis, :]
     return img
-
-
-def imshow(image, title=None):
-    if len(image.shape) > 3:
-        image = tf.squeeze(image, axis=0)
-
-    plt.imshow(image)
-    if title:
-        plt.title(title)
 
 
 def vgg_layers(layer_names):
@@ -117,8 +107,8 @@ class StyleContentModel(tf.keras.models.Model):
         return {"content": content_dict, "style": style_dict}
 
 
-CONTENT_IMG_PATH = "images/mountain.jpg"
-STYLE_IMG_PATH = "images/art2.jpg"
+CONTENT_IMG_PATH = "images/content/mountain.jpg"
+STYLE_IMG_PATH = "images/style/art2.jpg"
 
 IMG_SAVE_NAME = "mountain-art2"
 
@@ -173,39 +163,14 @@ def train_step(image):
     image.assign(clip_0_1(image))
 
 
-start = time.time()
 epochs = 10
 steps_per_epoch = 100
 
-step = 0
 for n in range(epochs):
     print(f"Epoch: {n+1}/{epochs}")
     for m in range(steps_per_epoch):
-        step += 1
         train_step(image)
     img = tensor_to_image(image)
     img.save(f"save/{IMG_SAVE_NAME}-{n}.png")
-    print("Train step: {}".format(step))
 
 product = tensor_to_image(image)
-
-end = time.time()
-print("Total time: {:.1f}".format(end - start))
-
-# def main():
-
-# hub_model = hub.load(
-#     "https://tfhub.dev/google/magenta/arbitrary-image-stylization-v1-256/2"
-# )
-# print("Model loaded.")
-
-# stylized_image = hub_model(tf.constant(image), tf.constant(style_img))
-# img = tensor_to_image(stylized_image)
-
-# plt.imshow(img)
-# plt.show()
-# img.save("save/wave.png")
-
-
-# if __name__ == "__main__":
-#     main()
