@@ -48,7 +48,7 @@ Style Image:
 
 ### Other Examples
 
-Deepspace Scence style with La Muse Painting
+Deepspace Scene style with La Muse Painting
 
 <img src="./save/deepspace-art/deepspace-art-9.png" alt="Deepspace-Art Painting" width="400" >
 
