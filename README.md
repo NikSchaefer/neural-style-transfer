@@ -34,23 +34,27 @@ Running for around 10 epochs(100 steps) tends to yield the best results. With ce
 
 The following example was run with 10 epochs with default weights.
 
-![Blended Neural Style Image](./save/mountain-scream/mountain-art2-9.png)
+<img src="./save/mountain-scream/mountain-art2-9.png" alt="Blended Neural Style Image" width="400" />
 
 The Content Image and Style Image for this example
 
 Content Image:
-![Content Image](./images/content/mountain.jpg)
+
+<img src="./images/content/mountain.jpg" alt="Content Image" width="400" />
 
 Style Image:
-![Style Image](./images/style/scream.jpg)
+
+<img src="./images/style/scream.jpg" alt="Style Image" width="400" />
 
 ### Other Examples
 
 Deepspace Scence style with La Muse Painting
-![Deepspace-Art Painting](./save/deepspace-art/deepspace-art-9.png)
+
+<img src="./save/deepspace-art/deepspace-art-9.png" alt="Deepspace-Art Painting" width="400" >
 
 Sunset mountain style with Greatwave Painting
-![Sunset Mountain Painting](./save/sunset-greatwave/sunset-greatwave-8.png)
+
+<img src="./save/sunset-greatwave/sunset-greatwave-8.png" alt="Sunset Mountain Painting" width="400" />
 
 ## Dependencies
 
