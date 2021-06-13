@@ -108,9 +108,9 @@ class StyleContentModel(tf.keras.models.Model):
 
 
 CONTENT_IMG_PATH = "images/content/mountain.jpg"
-STYLE_IMG_PATH = "images/style/art2.jpg"
+STYLE_IMG_PATH = "images/style/greatwave.jpg"
 
-IMG_SAVE_NAME = "mountain-art2"
+IMG_SAVE_NAME = "mountain-greatwave"
 
 content_img = load_img(CONTENT_IMG_PATH)
 style_img = load_img(STYLE_IMG_PATH)
@@ -172,5 +172,3 @@ for n in range(epochs):
         train_step(image)
     img = tensor_to_image(image)
     img.save(f"save/{IMG_SAVE_NAME}-{n}.png")
-
-product = tensor_to_image(image)
