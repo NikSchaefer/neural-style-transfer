@@ -1,4 +1,4 @@
-# Generative Style Transfer
+# Neural Style Transfer
 
 Implementation of Neural Style Transfer using a GAN(Generative Adversial Network) using the technique outlined in [A Neural Algorithm of Artistic Style](https://arxiv.org/abs/1508.06576).
 
