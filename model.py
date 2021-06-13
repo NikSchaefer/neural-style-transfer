@@ -1,7 +1,5 @@
 import tensorflow as tf
 
-import matplotlib.pyplot as plt
-
 import numpy as np
 import PIL.Image
 
@@ -16,7 +14,7 @@ def tensor_to_image(tensor):
 
 
 def load_img(path_to_img):
-    max_dim = 2000
+    max_dim = 3860
     img = tf.io.read_file(path_to_img)
     img = tf.image.decode_image(img, channels=3)
     img = tf.image.convert_image_dtype(img, tf.float32)
@@ -107,10 +105,14 @@ class StyleContentModel(tf.keras.models.Model):
         return {"content": content_dict, "style": style_dict}
 
 
-CONTENT_IMG_PATH = "images/content/mountain.jpg"
-STYLE_IMG_PATH = "images/style/greatwave.jpg"
+CONTENT_IMG_PATH = "images/content/planets.jpg"
+STYLE_IMG_PATH = "images/style/art.jpg"
 
 IMG_SAVE_NAME = "mountain-greatwave"
+
+style_weight = 1e-2  # default: 1e-2
+content_weight = 1e4  # default: 1e4
+total_variation_weight = 30  # default: 30
 
 content_img = load_img(CONTENT_IMG_PATH)
 style_img = load_img(STYLE_IMG_PATH)
@@ -134,10 +136,6 @@ extractor = StyleContentModel(style_layers, content_layers)
 results = extractor(tf.constant(content_img))
 
 # Gradient Descent
-style_weight = 1e-2
-content_weight = 1e4
-total_variation_weight = 30
-
 style_targets = extractor(style_img)["style"]
 content_targets = extractor(content_img)["content"]
 
@@ -163,7 +161,7 @@ def train_step(image):
     image.assign(clip_0_1(image))
 
 
-epochs = 10
+epochs = 100
 steps_per_epoch = 100
 
 for n in range(epochs):
