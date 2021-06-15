@@ -3,7 +3,6 @@ import tensorflow as tf
 import numpy as np
 import PIL.Image
 
-
 def tensor_to_image(tensor):
     tensor = tensor * 255
     tensor = np.array(tensor, dtype=np.uint8)
@@ -14,7 +13,7 @@ def tensor_to_image(tensor):
 
 
 def load_img(path_to_img):
-    max_dim = 3860
+    max_dim = MAX_DIM
     img = tf.io.read_file(path_to_img)
     img = tf.image.decode_image(img, channels=3)
     img = tf.image.convert_image_dtype(img, tf.float32)
@@ -105,10 +104,10 @@ class StyleContentModel(tf.keras.models.Model):
         return {"content": content_dict, "style": style_dict}
 
 
-CONTENT_IMG_PATH = "save/planets-art/planets-art-5.png"
+CONTENT_IMG_PATH = "images/content/deepspace.jpg"
 STYLE_IMG_PATH = "images/style/art.jpg"
 
-IMG_SAVE_NAME = "planets-art"
+MAX_DIM = 200
 
 style_weight = 1e-2  # default: 1e-2
 content_weight = 1e4  # default: 1e4
@@ -161,13 +160,12 @@ def train_step(image):
     image.assign(clip_0_1(image))
 
 
-epochs = 100
+epochs = 10
 steps_per_epoch = 100
 
 for n in range(epochs):
     print(f"\nEpoch: {n+1}/{epochs}")
     for m in range(steps_per_epoch):
         train_step(image)
-        print(".", end="")
     img = tensor_to_image(image)
-    img.save(f"save/{IMG_SAVE_NAME}-{n}.png")
+    img.save(f"save/{n}.png")
