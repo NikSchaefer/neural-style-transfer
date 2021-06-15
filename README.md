@@ -8,6 +8,12 @@ Neural Style Transfer is a technique that takes two images, a content image and 
 
 ## Running
 
+run in cmd
+
+`py .\model.py --content "images/content/city.jpg" --style "images/style/art.jpg"`
+
+or edit the variables
+
 set the path to the content image and style image in the file.
 
 ```py
@@ -30,7 +36,7 @@ total_variation_weight = 30  # default: 30
 
 ## Examples
 
-Running for around 10 epochs(100 steps) tends to yield the best results. With certain images it may be better to run more or less epochs as well as editing the weights to generate a better image.
+Running for around 10 epochs(1000 steps) tends to yield the best results. With certain images it may be better to run more or less epochs as well as editing the weights to generate a better image.
 
 The following example was run with 10 epochs with default weights.
 

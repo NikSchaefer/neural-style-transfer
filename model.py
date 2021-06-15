@@ -3,6 +3,19 @@ import tensorflow as tf
 import numpy as np
 import PIL.Image
 
+import argparse
+
+
+parser = argparse.ArgumentParser(description="Get Images for Neural Style Transfer")
+parser.add_argument(
+    "--content", type=str, help="Path to the content image", required=True
+)
+parser.add_argument("--style", type=str, help="Path to Style Image", required=True)
+parser.add_argument("--epochs", type=int, help="Number of Epochs", default=10)
+parser.add_argument("--max_dim", type=str, help="Max Image size", default=1000)
+
+args = parser.parse_args()
+
 
 def tensor_to_image(tensor):
     tensor = tensor * 255
@@ -105,10 +118,10 @@ class StyleContentModel(tf.keras.models.Model):
         return {"content": content_dict, "style": style_dict}
 
 
-CONTENT_IMG_PATH = "images/content/city.jpg"
-STYLE_IMG_PATH = "images/style/scream.jpg"
+CONTENT_IMG_PATH = args.content
+STYLE_IMG_PATH = args.style
 
-MAX_DIM = 1500
+MAX_DIM = args.max_dim
 
 style_weight = 1e-2  # default: 1e-2
 content_weight = 1e4  # default: 1e4
@@ -161,7 +174,7 @@ def train_step(image):
     image.assign(clip_0_1(image))
 
 
-epochs = 10
+epochs = args.epochs
 steps_per_epoch = 100
 
 for n in range(epochs):
