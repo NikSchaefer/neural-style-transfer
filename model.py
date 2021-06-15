@@ -12,7 +12,7 @@ parser.add_argument(
 )
 parser.add_argument("--style", type=str, help="Path to Style Image", required=True)
 parser.add_argument("--epochs", type=int, help="Number of Epochs", default=10)
-parser.add_argument("--max_dim", type=str, help="Max Image size", default=1000)
+parser.add_argument("--max-dim", type=int, help="Max Image size", default=1000)
 
 args = parser.parse_args()
 
