@@ -105,10 +105,10 @@ class StyleContentModel(tf.keras.models.Model):
         return {"content": content_dict, "style": style_dict}
 
 
-CONTENT_IMG_PATH = "city.jpg"
-STYLE_IMG_PATH = "images/style/greatwave.jpg"
+CONTENT_IMG_PATH = "images/content/city.jpg"
+STYLE_IMG_PATH = "images/style/scream.jpg"
 
-MAX_DIM = 2000
+MAX_DIM = 1500
 
 style_weight = 1e-2  # default: 1e-2
 content_weight = 1e4  # default: 1e4
