@@ -5,7 +5,6 @@ import PIL.Image
 
 import argparse
 
-
 parser = argparse.ArgumentParser(description="Get Images for Neural Style Transfer")
 parser.add_argument(
     "--content", type=str, help="Path to the content image", required=True
@@ -121,7 +120,7 @@ class StyleContentModel(tf.keras.models.Model):
 CONTENT_IMG_PATH = args.content
 STYLE_IMG_PATH = args.style
 
-MAX_DIM = args.max_dim
+MAX_DIM = 1000
 
 style_weight = 1e-2  # default: 1e-2
 content_weight = 1e4  # default: 1e4
@@ -177,9 +176,12 @@ def train_step(image):
 epochs = args.epochs
 steps_per_epoch = 100
 
+name = CONTENT_IMG_PATH.split("/")[len(CONTENT_IMG_PATH.split("/")) - 1].split(".")[0]
+style = STYLE_IMG_PATH.split("/")[len(STYLE_IMG_PATH.split("/")) - 1].split(".")[0]
 for n in range(epochs):
     print(f"\nEpoch: {n+1}/{epochs}")
     for m in range(steps_per_epoch):
+        print(m, " of ", steps_per_epoch, end="\r")
         train_step(image)
     img = tensor_to_image(image)
-    img.save(f"save/{n}.png")
+    img.save(f"save/new/{name}-{style}-{n}.png")
