@@ -56,7 +56,7 @@ Style Image:
 
 Deepspace Scene style with La Muse Painting
 
-<img src="./save/deepspace-art/deepspace-art-9.png" alt="Deepspace-Art Painting" width="500" >
+<img src="./save/deepspace-art/deepspace-art-9.png" alt="Deepspace-Art Painting" width="500" />
 
 Sunset mountain style with Greatwave Painting
 
