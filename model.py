@@ -11,7 +11,7 @@ parser.add_argument(
 )
 parser.add_argument("--style", type=str, help="Path to Style Image", required=True)
 parser.add_argument("--epochs", type=int, help="Number of Epochs", default=10)
-parser.add_argument("--max-dim", type=int, help="Max Image size", default=1000)
+parser.add_argument("--max-dim", type=int, help="Max Image size", default=10000)
 
 args = parser.parse_args()
 
@@ -23,8 +23,6 @@ def tensor_to_image(tensor):
         assert tensor.shape[0] == 1
         tensor = tensor[0]
     return PIL.Image.fromarray(tensor)
-
-
 def load_img(path_to_img):
     max_dim = MAX_DIM
     img = tf.io.read_file(path_to_img)
@@ -126,8 +124,8 @@ style_weight = 1e-2  # default: 1e-2
 content_weight = 1e4  # default: 1e4
 total_variation_weight = 30  # default: 30
 
-content_img = load_img(CONTENT_IMG_PATH)
-style_img = load_img(STYLE_IMG_PATH)
+content_img = load_img("images/content/" + CONTENT_IMG_PATH)
+style_img = load_img("images/style/" + STYLE_IMG_PATH)
 
 content_layers = ["block5_conv2"]
 

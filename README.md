@@ -30,8 +30,8 @@ You can alter the weights in the style_weight, content_weight, and total_variati
 
 ```py
 style_weight = 1e-2  # default: 1e-2
-content_weight = 1e4  # default: 1e4
-total_variation_weight = 30  # default: 30
+content_weight = 1e5  # default: 1e4
+total_variation_weight = 20  # default: 30
 ```
 
 ## Examples
