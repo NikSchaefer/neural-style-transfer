@@ -3,18 +3,6 @@ import tensorflow as tf
 import numpy as np
 import PIL.Image
 
-import argparse
-
-parser = argparse.ArgumentParser(description="Get Images for Neural Style Transfer")
-parser.add_argument(
-    "--content", type=str, help="Path to the content image", required=True
-)
-parser.add_argument("--style", type=str, help="Path to Style Image", required=True)
-parser.add_argument("--epochs", type=int, help="Number of Epochs", default=10)
-parser.add_argument("--max-dim", type=int, help="Max Image size", default=10000)
-
-args = parser.parse_args()
-
 
 def tensor_to_image(tensor):
     tensor = tensor * 255
@@ -23,8 +11,9 @@ def tensor_to_image(tensor):
         assert tensor.shape[0] == 1
         tensor = tensor[0]
     return PIL.Image.fromarray(tensor)
-def load_img(path_to_img):
-    max_dim = MAX_DIM
+
+
+def load_img(path_to_img, max_dim):
     img = tf.io.read_file(path_to_img)
     img = tf.image.decode_image(img, channels=3)
     img = tf.image.convert_image_dtype(img, tf.float32)
@@ -59,7 +48,9 @@ def gram_matrix(input_tensor):
     return result / (num_locations)
 
 
-def style_content_loss(outputs):
+def style_content_loss(
+    outputs, style_weight, content_weight, style_targets, content_targets
+):
     style_outputs = outputs["style"]
     content_outputs = outputs["content"]
     style_loss = tf.add_n(
@@ -115,17 +106,9 @@ class StyleContentModel(tf.keras.models.Model):
         return {"content": content_dict, "style": style_dict}
 
 
-CONTENT_IMG_PATH = args.content
-STYLE_IMG_PATH = args.style
+def clip_0_1(image):
+    return tf.clip_by_value(image, clip_value_min=0.0, clip_value_max=1.0)
 
-MAX_DIM = 1000
-
-style_weight = 1e-2  # default: 1e-2
-content_weight = 1e4  # default: 1e4
-total_variation_weight = 30  # default: 30
-
-content_img = load_img("images/content/" + CONTENT_IMG_PATH)
-style_img = load_img("images/style/" + STYLE_IMG_PATH)
 
 content_layers = ["block5_conv2"]
 
@@ -140,46 +123,57 @@ style_layers = [
 num_content_layers = len(content_layers)
 num_style_layers = len(style_layers)
 
-vgg = tf.keras.applications.VGG19(include_top=False, weights="imagenet")
 
-extractor = StyleContentModel(style_layers, content_layers)
-results = extractor(tf.constant(content_img))
+def apply_transfer(
+    content,
+    style,
+    style_weight=1e-2,
+    content_weight=1e4,
+    epochs=10,
+    max_dim=1000,
+    variation_weight=30,
+    save_name="output",
+):
+    content_img = load_img(content, max_dim=max_dim)
+    style_img = load_img(style, max_dim=max_dim)
 
-# Gradient Descent
-style_targets = extractor(style_img)["style"]
-content_targets = extractor(content_img)["content"]
+    extractor = StyleContentModel(style_layers, content_layers)
+    style_targets = extractor(style_img)["style"]
+    content_targets = extractor(content_img)["content"]
 
-image = tf.Variable(content_img)
+    image = tf.Variable(content_img)
+    opt = tf.optimizers.Adam(learning_rate=0.02, beta_1=0.99, epsilon=1e-1)
+
+    @tf.function()
+    def train_step(image):
+        with tf.GradientTape() as tape:
+            outputs = extractor(image)
+            loss = style_content_loss(
+                outputs, style_weight, content_weight, style_targets, content_targets
+            )
+            loss += variation_weight * tf.image.total_variation(image)
+
+        grad = tape.gradient(loss, image)
+        opt.apply_gradients([(grad, image)])
+        image.assign(clip_0_1(image))
+
+    steps_per_epoch = 100
+
+    for n in range(epochs):
+        print(f"\nEpoch: {n+1}/{epochs}")
+        for m in range(steps_per_epoch):
+            print(m + 1, " of ", steps_per_epoch, end="\r")
+            train_step(image)
+        img = tensor_to_image(image)
+        img.save(f"save/new/{save_name}-{n}.png")
 
 
-def clip_0_1(image):
-    return tf.clip_by_value(image, clip_value_min=0.0, clip_value_max=1.0)
-
-
-opt = tf.optimizers.Adam(learning_rate=0.02, beta_1=0.99, epsilon=1e-1)
-
-
-@tf.function()
-def train_step(image):
-    with tf.GradientTape() as tape:
-        outputs = extractor(image)
-        loss = style_content_loss(outputs)
-        loss += total_variation_weight * tf.image.total_variation(image)
-
-    grad = tape.gradient(loss, image)
-    opt.apply_gradients([(grad, image)])
-    image.assign(clip_0_1(image))
-
-
-epochs = args.epochs
-steps_per_epoch = 100
-
-name = CONTENT_IMG_PATH.split("/")[len(CONTENT_IMG_PATH.split("/")) - 1].split(".")[0]
-style = STYLE_IMG_PATH.split("/")[len(STYLE_IMG_PATH.split("/")) - 1].split(".")[0]
-for n in range(epochs):
-    print(f"\nEpoch: {n+1}/{epochs}")
-    for m in range(steps_per_epoch):
-        print(m, " of ", steps_per_epoch, end="\r")
-        train_step(image)
-    img = tensor_to_image(image)
-    img.save(f"save/new/{name}-{style}-{n}.png")
+if __name__ == "__main__":
+    apply_transfer(
+        "myimages/content/4k.png",
+        "images/style/greatwave.jpg",
+        save_name="chess-wave",
+        max_dim=500,
+        style_weight=1e-2,
+        content_weight=3e4,
+    )

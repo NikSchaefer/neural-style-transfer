@@ -40,7 +40,7 @@ Running for around 10 epochs(1000 steps) tends to yield the best results. With c
 
 The following example was run with 10 epochs with default weights.
 
-<img src="./save/cityscape-scream/9.png" alt="Blended Neural Style Image" width="500" />
+<img src="./save/cityscape-scream/cityscape-scream.png" alt="Blended Neural Style Image" width="500" />
 
 The Content Image and Style Image for this example
 
@@ -56,15 +56,15 @@ Style Image:
 
 Deepspace Scene style with La Muse Painting
 
-<img src="./save/deepspace-art/deepspace-art-9.png" alt="Deepspace-Art Painting" width="500" >
+<img src="./save/deepspace-art/deepspace-art.png" alt="Deepspace-Art Painting" width="500" >
 
 Sunset mountain style with Greatwave Painting
 
-<img src="./save/sunset-greatwave/sunset-greatwave-8.png" alt="Sunset Mountain Painting" width="500" />
+<img src="./save/sunset-greatwave/sunset-greatwave.png" alt="Sunset Mountain Painting" width="500" />
 
 Vertical City Scene styled with Scream Painting
 
-<img src="./save/city-scream/9.png" alt="Cityscape blended painting" width="500" />
+<img src="./save/city-scream/city-scream.png" alt="Cityscape blended painting" width="500" />
 
 ## Dependencies
 
