@@ -3,7 +3,6 @@ import tensorflow as tf
 import numpy as np
 import PIL.Image
 
-
 def tensor_to_image(tensor):
     tensor = tensor * 255
     tensor = np.array(tensor, dtype=np.uint8)
@@ -172,8 +171,24 @@ if __name__ == "__main__":
     apply_transfer(
         "myimages/content/4k.png",
         "images/style/greatwave.jpg",
-        save_name="chess-wave",
-        max_dim=500,
+        save_name="1",
+        max_dim=1000,
         style_weight=1e-2,
-        content_weight=3e4,
+        content_weight=1e5,
+    )
+    apply_transfer(
+        "myimages/content/4k.png",
+        "images/style/greatwave.jpg",
+        save_name="2",
+        max_dim=1000,
+        style_weight=3e-2,
+        content_weight=1e5,
+    )
+    apply_transfer(
+        "myimages/content/4k.png",
+        "images/style/greatwave.jpg",
+        save_name="3",
+        max_dim=1000,
+        style_weight=1e-2,
+        content_weight=2e5,
     )
