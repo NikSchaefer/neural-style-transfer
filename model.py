@@ -3,19 +3,6 @@ import tensorflow as tf
 import numpy as np
 import PIL.Image
 
-import argparse
-
-parser = argparse.ArgumentParser(description="Get Images for Neural Style Transfer")
-parser.add_argument(
-    "--content", type=str, help="Path to the content image", required=True
-)
-parser.add_argument("--style", type=str, help="Path to Style Image", required=True)
-parser.add_argument("--epochs", type=int, help="Number of Epochs", default=10)
-parser.add_argument("--max-dim", type=int, help="Max Image size", default=1000)
-
-args = parser.parse_args()
-
-
 def tensor_to_image(tensor):
     tensor = tensor * 255
     tensor = np.array(tensor, dtype=np.uint8)
@@ -25,8 +12,7 @@ def tensor_to_image(tensor):
     return PIL.Image.fromarray(tensor)
 
 
-def load_img(path_to_img):
-    max_dim = MAX_DIM
+def load_img(path_to_img, max_dim):
     img = tf.io.read_file(path_to_img)
     img = tf.image.decode_image(img, channels=3)
     img = tf.image.convert_image_dtype(img, tf.float32)
@@ -61,26 +47,7 @@ def gram_matrix(input_tensor):
     return result / (num_locations)
 
 
-def style_content_loss(outputs):
-    style_outputs = outputs["style"]
-    content_outputs = outputs["content"]
-    style_loss = tf.add_n(
-        [
-            tf.reduce_mean((style_outputs[name] - style_targets[name]) ** 2)
-            for name in style_outputs.keys()
-        ]
-    )
-    style_loss *= style_weight / num_style_layers
 
-    content_loss = tf.add_n(
-        [
-            tf.reduce_mean((content_outputs[name] - content_targets[name]) ** 2)
-            for name in content_outputs.keys()
-        ]
-    )
-    content_loss *= content_weight / num_content_layers
-    loss = style_loss + content_loss
-    return loss
 
 
 class StyleContentModel(tf.keras.models.Model):
@@ -116,72 +83,79 @@ class StyleContentModel(tf.keras.models.Model):
 
         return {"content": content_dict, "style": style_dict}
 
+def style_transfer_image(content, style, epochs=10, steps_per_epoch=100, style_weight=1e-2, content_weight=1e4, total_variation_weight=30, max_dim=1000, save_name="output.png"):
+    content_img = load_img(content, max_dim=max_dim)
+    style_img = load_img(style, max_dim=max_dim)
 
-CONTENT_IMG_PATH = args.content
-STYLE_IMG_PATH = args.style
+    content_layers = ["block5_conv2"]
 
-MAX_DIM = 1000
+    style_layers = [
+        "block1_conv1",
+        "block2_conv1",
+        "block3_conv1",
+        "block4_conv1",
+        "block5_conv1",
+    ]
 
-style_weight = 1e-2  # default: 1e-2
-content_weight = 1e4  # default: 1e4
-total_variation_weight = 30  # default: 30
+    num_content_layers = len(content_layers)
+    num_style_layers = len(style_layers)
 
-content_img = load_img(CONTENT_IMG_PATH)
-style_img = load_img(STYLE_IMG_PATH)
+    vgg = tf.keras.applications.VGG19(include_top=False, weights="imagenet")
 
-content_layers = ["block5_conv2"]
+    extractor = StyleContentModel(style_layers, content_layers)
+    results = extractor(tf.constant(content_img))
 
-style_layers = [
-    "block1_conv1",
-    "block2_conv1",
-    "block3_conv1",
-    "block4_conv1",
-    "block5_conv1",
-]
+    # Gradient Descent
+    style_targets = extractor(style_img)["style"]
+    content_targets = extractor(content_img)["content"]
 
-num_content_layers = len(content_layers)
-num_style_layers = len(style_layers)
+    image = tf.Variable(content_img)
 
-vgg = tf.keras.applications.VGG19(include_top=False, weights="imagenet")
+    def clip_0_1(image):
+        return tf.clip_by_value(image, clip_value_min=0.0, clip_value_max=1.0)
 
-extractor = StyleContentModel(style_layers, content_layers)
-results = extractor(tf.constant(content_img))
+    opt = tf.optimizers.Adam(learning_rate=0.02, beta_1=0.99, epsilon=1e-1)
 
-# Gradient Descent
-style_targets = extractor(style_img)["style"]
-content_targets = extractor(content_img)["content"]
+    def style_content_loss(outputs):
+        style_outputs = outputs["style"]
+        content_outputs = outputs["content"]
+        style_loss = tf.add_n(
+            [
+                tf.reduce_mean((style_outputs[name] - style_targets[name]) ** 2)
+                for name in style_outputs.keys()
+            ]
+        )
+        style_loss *= style_weight / num_style_layers
 
-image = tf.Variable(content_img)
+        content_loss = tf.add_n(
+            [
+                tf.reduce_mean((content_outputs[name] - content_targets[name]) ** 2)
+                for name in content_outputs.keys()
+            ]
+        )
+        content_loss *= content_weight / num_content_layers
+        loss = style_loss + content_loss
+        return loss
+
+    @tf.function()
+    def train_step(image):
+        with tf.GradientTape() as tape:
+            outputs = extractor(image)
+            loss = style_content_loss(outputs)
+            loss += total_variation_weight * tf.image.total_variation(image)
+
+        grad = tape.gradient(loss, image)
+        opt.apply_gradients([(grad, image)])
+        image.assign(clip_0_1(image))
+
+    for n in range(epochs):
+        print(f"\nEpoch: {n+1}/{epochs}")
+        for m in range(steps_per_epoch):
+            print(m, " of ", steps_per_epoch, end="\r")
+            train_step(image)
+        img = tensor_to_image(image)
+        img.save(f"save/new/{save_name}.png")
 
 
-def clip_0_1(image):
-    return tf.clip_by_value(image, clip_value_min=0.0, clip_value_max=1.0)
-
-
-opt = tf.optimizers.Adam(learning_rate=0.02, beta_1=0.99, epsilon=1e-1)
-
-
-@tf.function()
-def train_step(image):
-    with tf.GradientTape() as tape:
-        outputs = extractor(image)
-        loss = style_content_loss(outputs)
-        loss += total_variation_weight * tf.image.total_variation(image)
-
-    grad = tape.gradient(loss, image)
-    opt.apply_gradients([(grad, image)])
-    image.assign(clip_0_1(image))
-
-
-epochs = args.epochs
-steps_per_epoch = 100
-
-name = CONTENT_IMG_PATH.split("/")[len(CONTENT_IMG_PATH.split("/")) - 1].split(".")[0]
-style = STYLE_IMG_PATH.split("/")[len(STYLE_IMG_PATH.split("/")) - 1].split(".")[0]
-for n in range(epochs):
-    print(f"\nEpoch: {n+1}/{epochs}")
-    for m in range(steps_per_epoch):
-        print(m, " of ", steps_per_epoch, end="\r")
-        train_step(image)
-    img = tensor_to_image(image)
-    img.save(f"save/new/{name}-{style}-{n}.png")
+if __name__ == "__main__":
+    style_transfer_image("images/content.jpg", "images/style.jpg")
