@@ -3,6 +3,7 @@ import tensorflow as tf
 import numpy as np
 import PIL.Image
 
+
 def tensor_to_image(tensor):
     tensor = tensor * 255
     tensor = np.array(tensor, dtype=np.uint8)
@@ -47,9 +48,6 @@ def gram_matrix(input_tensor):
     return result / (num_locations)
 
 
-
-
-
 class StyleContentModel(tf.keras.models.Model):
     def __init__(self, style_layers, content_layers):
         super(StyleContentModel, self).__init__()
@@ -83,7 +81,18 @@ class StyleContentModel(tf.keras.models.Model):
 
         return {"content": content_dict, "style": style_dict}
 
-def style_transfer_image(content, style, epochs=10, steps_per_epoch=100, style_weight=1e-2, content_weight=1e4, total_variation_weight=30, max_dim=1000, save_name="output.png"):
+
+def style_transfer_image(
+    content,
+    style,
+    epochs=10,
+    steps_per_epoch=100,
+    style_weight=1e-2,
+    content_weight=1e4,
+    total_variation_weight=30,
+    max_dim=1000,
+    save_name="output.png",
+):
     content_img = load_img(content, max_dim=max_dim)
     style_img = load_img(style, max_dim=max_dim)
 
@@ -100,10 +109,7 @@ def style_transfer_image(content, style, epochs=10, steps_per_epoch=100, style_w
     num_content_layers = len(content_layers)
     num_style_layers = len(style_layers)
 
-    vgg = tf.keras.applications.VGG19(include_top=False, weights="imagenet")
-
     extractor = StyleContentModel(style_layers, content_layers)
-    results = extractor(tf.constant(content_img))
 
     # Gradient Descent
     style_targets = extractor(style_img)["style"]
@@ -154,8 +160,19 @@ def style_transfer_image(content, style, epochs=10, steps_per_epoch=100, style_w
             print(m, " of ", steps_per_epoch, end="\r")
             train_step(image)
         img = tensor_to_image(image)
-        img.save(f"save/new/{save_name}.png")
+        img.save(f"{save_name}-{n}.png")
 
 
 if __name__ == "__main__":
-    style_transfer_image("images/content.jpg", "images/style.jpg")
+    style_transfer_image(
+        "blend.png", "images/style/greatwave.jpg", save_name="blend-wave",
+        style_weight=1e-2, content_weight=1e4, total_variation_weight=30,
+    )
+    style_transfer_image(
+        "blend.png", "images/style/greatwave.jpg", save_name="blend-weighted",
+        style_weight=1e-2, content_weight=3e4, total_variation_weight=30,
+    )
+    style_transfer_image(
+        "blend.png", "images/style/greatwave.jpg", save_name="blend-styled",
+        style_weight=3e-2, content_weight=1e4, total_variation_weight=30,
+    )
